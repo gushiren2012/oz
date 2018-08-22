@@ -1,0 +1,104 @@
+<template>
+  <name>qemu-centos65</name>
+  <os>
+    <name>CentOS-6</name>
+    <version>5</version>
+    <arch>x86_64</arch>
+    <install type='iso'>
+      <iso>file:///data/md0/iso/CentOS-6.5-x86_64-minimal.iso</iso>
+    </install>
+    <rootpw>Ct@2017Yun!@$%.CN</rootpw>
+  </os>
+  <disk>
+    <size>20</size>
+  </disk>
+  <description>CentOS 6.5 x86_64</description>
+  <packages>
+    <package name='acpid'/>
+    <package name='cloud-utils-growpart'/>
+    <package name='cloud-init'/>
+    <package name='parted'/>
+    <package name='unzip'/>
+    <package name='NetworkManager-*'/>
+  </packages>
+  <repositories>
+    <repository name='aliyun-Base'>
+      <url>http://mirrors.aliyun.com/centos/$releasever/os/$basearch/</url>
+      <signed>no</signed>
+    </repository>
+	<repository name='epel'>
+      <url>http://mirrors.aliyun.com/epel/6/$basearch</url>
+      <signed>no</signed>
+    </repository>
+  </repositories>
+  <commands>
+    <command name='install_qga'>
+cd /root
+tar xf qga.20171124.tar.gz
+cd qga
+bash ./install_qga_local.sh
+    </command>
+	
+	<command name='install_linux_root_resize'>
+cd /root
+unzip linux-rootfs-resize-master.zip
+cd linux-rootfs-resize-master
+bash ./install
+   </command>
+   
+   <command name='profile'>
+echo "NOZEROCONF=yes" >> /etc/sysconfig/network
+ln -s /boot/grub/grub.conf /etc/grub.conf
+rm -rf /etc/udev/rules.d/70-persistent-net.rules
+touch /etc/udev/rules.d/75-persistent-net-generator.rules
+chmod +x /var/lib/cloud/scripts/per-boot/resetroot
+   </command>
+   
+   <command name='services'>
+service sshd restart
+service iptables stop
+service ip6tables stop
+service acpid start
+service NetworkManager start
+chkconfig iptables off
+chkconfig ip6tables off
+chkconfig acpid on
+chkconfig NetworkManager on
+chkconfig cloud-init on
+chkconfig cloud-final on
+chkconfig cloud-config on
+chkconfig cloud-init-local on
+   </command>
+	
+   <command name='clear-logs'>
+rm -rf /root/*
+rm -rf /var/log/anaconda*
+rm -rf /var/log/message
+rm -rf /var/log/messages
+rm -rf /etc/yum.repos.d/aliyun-Base.repo
+rm -rf /etc/yum.repos.d/epel.repo
+yum clean all
+yum makecache
+>/var/log/boot.log
+>/var/log/messages
+>/var/log/cloud-init-output.log
+>/var/log/yum.log
+   </command>
+
+  </commands>
+    <files>
+        <file name="/root/qga.20171124.tar.gz" type="url">
+            file:///data/nvme0n1/OZ-build-image/scripts/qga.20171124.tar.gz
+        </file>
+		<file name="/root/linux-rootfs-resize-master.zip" type="url">
+	        file:///data/nvme0n1/OZ-build-image/scripts/linux-rootfs-resize-master.zip
+        </file>
+		<file name="/var/lib/cloud/scripts/per-boot/resetroot" type="url">
+			file:///data/nvme0n1/OZ-build-image/scripts/resetroot
+		</file>
+		<file name="/etc/cloud/cloud.cfg" type="url">
+			file:///data/nvme0n1/OZ-build-image/scripts/cloud.cfg_centos6
+		</file>
+    </files>
+</template>
+
